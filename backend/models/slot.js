@@ -1,6 +1,7 @@
 var admin = require("firebase-admin");
+require("dotenv").config();
 
-var serviceAccount = require("F:/React/Task3/backend/appointment-fa4a0-firebase-adminsdk-5r2ib-b7aa936245.json");
+const serviceAccount = JSON.parse(process.env.GOOGLE_CREDS);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
