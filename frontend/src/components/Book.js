@@ -15,7 +15,7 @@ export default function Book() {
     if (selectedSlot === "") alert("Select a slot.");
     else {
       axios
-        .post("http://localhost:3001/bookSlot", {
+        .post("/bookSlot", {
           date: date,
           time: selectedSlot,
           name: name,
@@ -33,7 +33,7 @@ export default function Book() {
 
   const getFreeSlot = () => {
     axios
-      .post("http://localhost:3001/getFreeSlot", {
+      .post("/getFreeSlot", {
         date: date,
         minute: minute,
       })
@@ -56,12 +56,12 @@ export default function Book() {
     } else {
       setLoader(false);
       axios
-        .post("http://localhost:3001/getSlotCount", { date: date })
+        .post("/getSlotCount", { date: date })
         .then((res) => {
           const n = res.data.n;
           if (n === 0) {
             axios
-              .post("http://localhost:3001/createSlot", { date: date })
+              .post("/createSlot", { date: date })
               .then((resp) => {
                 console.log(resp.data);
                 getFreeSlot();

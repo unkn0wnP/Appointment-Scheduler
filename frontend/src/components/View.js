@@ -7,7 +7,7 @@ export default function View() {
   const [load, setload] = useState(true);
 
   useEffect(() => {
-    axios.post("http://localhost:3001/getBookings", {}).then((res) => {
+    axios.post("/getBookings", {}).then((res) => {
       setdata(res.data);
       setload(false);
     });
