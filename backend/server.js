@@ -99,7 +99,9 @@ app.post("/bookSlot", async (req, res) => {
 });
 
 app.post("/getBookings", async (req, res) => {
-  const data = await bookA.orderBy("date").orderBy("time").get();
+  const date1 = req.body.date1;
+  const date2 = req.body.date2;
+  const data = await bookA.orderBy("date").orderBy("time").where("date",">=",date1).where("date","<=",date2).get();
   const list = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   res.send(list);
 });

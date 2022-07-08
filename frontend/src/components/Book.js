@@ -79,7 +79,7 @@ export default function Book() {
         <div className="container py-1 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">
             <div className="col-12 col-md-6 col-lg-6 col-xl-5">
-              <div className="card bg-light text-white">
+              <div className="card bg-light">
                 <div className="card-body p-5">
                   <div className="mb-md-1 mt-md-1 pb-1">
                     <div className="form-outline form-white mb-2 ">
