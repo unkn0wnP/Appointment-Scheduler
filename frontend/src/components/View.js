@@ -63,7 +63,7 @@ export default function View() {
                       />
                     </div>
 
-                    <div className="d-grid gap-2 col-4 mx-auto">
+                    <div className="d-grid gap-2 col-6 mx-auto">
                       <button
                         className="btn btn-outline-success"
                         type="button"
