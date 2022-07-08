@@ -49,7 +49,7 @@ export default function Book() {
     setselectedSlot("");
     const d1 = new Date();
     const d2 = new Date(date);
-    if (minute === 0 || date === "") {
+    if (minute === 0 || date === "" || name==="") {
       alert("Enter details.");
     } else if (d2 < d1) {
       alert("Wrong Date");

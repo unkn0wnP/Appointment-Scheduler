@@ -69,7 +69,7 @@ export default function View() {
                         type="button"
                         onClick={getData}
                       >
-                        Free Slots
+                        Get Appointments
                       </button>
                     </div>
                   </div>
@@ -82,7 +82,7 @@ export default function View() {
       {loader ? null : <Loading />}
       {dataFetched ? (
         <div className="container my-5">
-          <h3 className="mb-3 mt-5 fw-bold text-center">Bookings</h3>
+          <h3 className="mb-3 mt-5 fw-bold text-center">Appointments</h3>
           <table className="table table-striped text-center">
             <thead className="fs-4">
               <tr>
