@@ -15,7 +15,7 @@ export default function View() {
     else {
       setLoader(false);
       axios
-        .post("/getBookings", {
+        .post("http://localhost:3001/getBookings", {
           date1: date1,
           date2: date2,
         })
