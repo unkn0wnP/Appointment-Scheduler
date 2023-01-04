@@ -24,13 +24,32 @@ export const authRegister = async (data, showAlert) => {
       email: data.email,
       password: data.pass,
     };
-    // await axios
-    //   .post("/register", udata)
-    //   .then((res) => {
-    //     window.location.href = "/login";
-    //   })
-    //   .catch((error) => {
-    //     showAlert(error.response.data, "danger");
-    //   });
+    await axios
+      .post("http://localhost:3001/register", udata)
+      .then((res) => {
+        window.location.href = "/login";
+      })
+      .catch((error) => {
+        showAlert(error.response.data, "danger");
+      });
   }
 };
+
+export const authLogin = async (data, showAlert) => {
+    if (data.username === "" || data.password === "")
+      showAlert("Please fill all the details.", "danger");
+    else {
+      await axios
+        .post("http://localhost:3001/login", {
+          username: data.username,
+          password: data.password,
+        })
+        .then((res) => {
+          localStorage.setItem("jwtToken", res.data.accessToken);
+          window.location.href = "/dashboard";
+        })
+        .catch((error) => {
+          showAlert(error.response.data, "danger");
+        });
+    }
+  };

@@ -2,12 +2,14 @@ const express = require("express");
 const cors = require("cors");
 const slotD = require("./models/slot");
 const bookA = require("./models/bookings");
+const User = require("./models/user")
 const config = require("../config/const.js");
 const path = require("path");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3001;
 const app = express();
-
 
 app.use(express.static(path.resolve(__dirname, "../frontend/build")));
 app.get("*", (request, response) => {
@@ -48,7 +50,7 @@ app.post("/getFreeSlot", async (req, res) => {
   const d = req.body.date;
   const minute = req.body.minute;
 
-  const n = Math.ceil(minute / duration)
+  const n = Math.ceil(minute / duration);
 
   let result = [];
   let t = start;
@@ -74,7 +76,7 @@ app.post("/bookSlot", async (req, res) => {
   const name = req.body.name;
   const minute = parseInt(req.body.minute);
 
-  const n = Math.ceil(minute / duration)
+  const n = Math.ceil(minute / duration);
 
   const data = {
     name: name,
@@ -101,10 +103,74 @@ app.post("/bookSlot", async (req, res) => {
 app.post("/getBookings", async (req, res) => {
   const date1 = req.body.date1;
   const date2 = req.body.date2;
-  const data = await bookA.orderBy("date").orderBy("time").where("date",">=",date1).where("date","<=",date2).get();
+  const data = await bookA
+    .orderBy("date")
+    .orderBy("time")
+    .where("date", ">=", date1)
+    .where("date", "<=", date2)
+    .get();
   const list = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   res.send(list);
 });
+
+//Register
+app.post("/register", async (req, res) => {
+  const query1 = User.where('username',"==",req.body.username).get();
+  const query2 = User.where('email',"==",req.body.email).get();
+
+  const [res1,res2] = await Promise.all([query1,query2]);
+
+  const data = res1.docs.length + res2.docs.length
+
+  if (data !== 0) {
+    res.status(400).json("Username or Email is already in use.");
+  } else {
+    await User.add(req.body)
+
+    res.status(200).json("Registered Successfully.");
+  }
+});
+
+//login
+app.post("/login", async (req, res) => {
+  let data = await User.where('username',"==",req.body.username).get();
+
+  data = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  console.log(data)
+
+  if (data.length === 0) {
+    res.status(400).json("User not found.");
+  } else if (req.body.password !== data[0].password) {
+    res.status(400).json("Invalid password.");
+  } else {
+    const user = { username: req.body.username };
+
+    //JSON web token
+    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN);
+    res.json({ accessToken: accessToken });
+  }
+});
+
+
+//jwt token authentication
+function authenticateToken(req, res, next) {
+  if (req.headers.hasOwnProperty("authorization") === false) {
+    res.status(403);
+  } else {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (token === "null") return res.status(403);
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
+      if (err) {
+        res.sendStatus(403);
+      }
+      req.user = user;
+      next();
+    });
+  }
+}
 
 app.listen(PORT, () => {
   console.log("Server is running...");
