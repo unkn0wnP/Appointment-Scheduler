@@ -4,11 +4,11 @@ import Navbar from "./Navbar";
 
 export default function Home() {
 
-  const token = localStorage.getItem("splitterToken")
+  const token = localStorage.getItem("jwtToken")
 
   useEffect(() => {
     if(token)
-    window.location.href = "/dashboard"
+    window.location.href = "/book"
   
   }, [])
   return (

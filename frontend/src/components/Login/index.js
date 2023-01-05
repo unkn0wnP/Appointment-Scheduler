@@ -7,7 +7,7 @@ export default function Index() {
   const token = localStorage.getItem("jwtToken");
 
   useEffect(() => {
-    if (token) window.location.href = "/dashboard";
+    if (token) window.location.href = "/book";
   }, []);
 
   const showAlert = (msg, type) => {
@@ -21,9 +21,7 @@ export default function Index() {
     <>
       <Alert alert={alert} />
       <div className="row mx-3 my-4 mb-4">
-        <div className="card bg-dark mt-5 my-auto">
           <Login showAlert={showAlert} />
-        </div>
       </div>
     </>
   );

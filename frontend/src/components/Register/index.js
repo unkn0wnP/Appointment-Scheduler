@@ -8,7 +8,7 @@ export default function Index() {
   const token = localStorage.getItem("jwtToken");
 
   useEffect(() => {
-    if (token) window.location.href = "/dashboard";
+    if (token) window.location.href = "/book";
   }, []);
 
   const showAlert = (msg, type) => {

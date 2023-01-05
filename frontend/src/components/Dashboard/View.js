@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Loading from "./Loading";
+import Navbar from "./Navbar";
 const axios = require("axios");
 
 export default function View() {
@@ -8,6 +9,11 @@ export default function View() {
   const [data, setdata] = useState([]);
   const [loader, setLoader] = useState(true);
   const [dataFetched, setdataFetched] = useState(false);
+  const token = localStorage.getItem("jwtToken");
+
+  useEffect(() => {
+    if (token === null) window.location.href = "/login";
+  }, []);
 
   const getData = () => {
     if (date1 === "" || date2 === "") alert("Select Date.");
@@ -29,6 +35,7 @@ export default function View() {
 
   return (
     <>
+    <Navbar/>
       <section className="vh-1 gradient-custom">
         <div className="container py-1 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">

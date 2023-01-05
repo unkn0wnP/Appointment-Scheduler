@@ -46,7 +46,7 @@ export const authLogin = async (data, showAlert) => {
         })
         .then((res) => {
           localStorage.setItem("jwtToken", res.data.accessToken);
-          window.location.href = "/dashboard";
+          window.location.href = "/book";
         })
         .catch((error) => {
           showAlert(error.response.data, "danger");

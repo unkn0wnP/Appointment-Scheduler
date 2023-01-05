@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+import Navbar from "./Navbar";
 import Loading from "./Loading";
 const axios = require("axios");
 
@@ -10,6 +11,12 @@ export default function Book() {
   const [loader, setLoader] = useState(true);
   const [selectedSlot, setselectedSlot] = useState();
   const [dataFetched, setdataFetched] = useState(false);
+
+  const token = localStorage.getItem("jwtToken");
+
+  useEffect(() => {
+    if (token === null) window.location.href = "/login";
+  }, []);
 
   const bookSlot = () => {
     if (selectedSlot === "") alert("Select a slot.");
@@ -75,6 +82,7 @@ export default function Book() {
 
   return (
     <>
+    <Navbar/>
       <section className="vh-1 gradient-custom">
         <div className="container py-1 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">
