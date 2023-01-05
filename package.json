@@ -3,10 +3,11 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
-    "firebase-admin": "^11.0.0"
+    "firebase-admin": "^11.0.0",
+    "jsonwebtoken": "^9.0.0"
   },
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "nodemon backend/server.js",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix frontend && npm run build --prefix frontend"
   },
   "name": "backend",

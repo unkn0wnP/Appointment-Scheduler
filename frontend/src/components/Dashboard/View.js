@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { getbookings } from "../../services/data";
 import Loading from "./Loading";
-const axios = require("axios");
+import Navbar from "./Navbar";
 
 export default function View() {
   const [date1, setDate1] = useState("");
@@ -8,27 +9,32 @@ export default function View() {
   const [data, setdata] = useState([]);
   const [loader, setLoader] = useState(true);
   const [dataFetched, setdataFetched] = useState(false);
+  const token = localStorage.getItem("jwtToken");
+
+  useEffect(() => {
+    if (token === null) window.location.href = "/login";
+  }, []);
 
   const getData = () => {
     if (date1 === "" || date2 === "") alert("Select Date.");
     else if (date2 < date1) alert("Invalid range.");
     else {
+      setdataFetched(false);
       setLoader(false);
-      axios
-        .post("/getBookings", {
-          date1: date1,
-          date2: date2,
-        })
-        .then((res) => {
-          setdata(res.data);
-          setdataFetched(true);
-          setLoader(true);
-        });
+      setdata([]);
+      const getBookings = async () => {
+        const res = await getbookings(token, date1, date2);
+        setdata(res);
+        setdataFetched(true);
+        setLoader(true);
+      };
+      getBookings();
     }
   };
 
   return (
     <>
+      <Navbar />
       <section className="vh-1 gradient-custom">
         <div className="container py-1 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">
