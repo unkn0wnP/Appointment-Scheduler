@@ -1,10 +1,10 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import Loading from "./Loading";
+import { bookslot, freeslots, getslots } from "../../services/data";
 const axios = require("axios");
 
 export default function Book() {
-  const [name, setname] = useState("");
   const [date, setDate] = useState("");
   const [minute, setminute] = useState(0);
   const [freeSlot, setfreeSlot] = useState([]);
@@ -18,71 +18,69 @@ export default function Book() {
     if (token === null) window.location.href = "/login";
   }, []);
 
-  const bookSlot = () => {
-    if (selectedSlot === "") alert("Select a slot.");
-    else {
-      axios
-        .post("http://localhost:3001/bookSlot", {
-          date: date,
-          time: selectedSlot,
-          name: name,
-          minute: minute,
-        })
-        .then((res) => {
-          setname("");
-          setdataFetched(false);
-          setfreeSlot([]);
-          setselectedSlot();
-          alert("Booked.");
-        });
+  const bookSlot = async () => {
+    const res = await bookslot(token, {
+      date: date,
+      time: selectedSlot,
+      minute: minute,
+    });
+
+    if (res) {
+      setdataFetched(false);
+      setfreeSlot([]);
+      setselectedSlot();
+      alert("Booked.");
     }
+
+    // if (selectedSlot === "") alert("Select a slot.");
+    // else {
+    //   axios
+    //     .post("http://localhost:3001/bookSlot", {
+    //       date: date,
+    //       time: selectedSlot,
+    //       minute: minute,
+    //     })
+    //     .then((res) => {
+    //       setdataFetched(false);
+    //       setfreeSlot([]);
+    //       setselectedSlot();
+    //       alert("Booked.");
+    //     });
+    // }
   };
 
   const getFreeSlot = () => {
-    axios
-      .post("http://localhost:3001/getFreeSlot", {
-        date: date,
-        minute: minute,
-      })
-      .then((res) => {
-        setfreeSlot(res.data);
-        setLoader(true);
-        setdataFetched(true);
-      });
+    const data = { date: date, minute: minute };
+
+    const slots = async () => {
+      const res = await freeslots(token, data);
+      res && setfreeSlot(res);
+      res && setLoader(true);
+      res && setdataFetched(true);
+    };
+    slots();
   };
-  const getSlot = () => {
+  const getSlot = async () => {
     setdataFetched(false);
     setfreeSlot([]);
     setselectedSlot("");
     const d1 = new Date();
     const d2 = new Date(date);
-    if (minute === 0 || date === "" || name==="") {
+    if (minute === 0 || date === "") {
       alert("Enter details.");
     } else if (d2 < d1) {
       alert("Wrong Date");
     } else {
       setLoader(false);
-      axios
-        .post("http://localhost:3001/getSlotCount", { date: date })
-        .then((res) => {
-          const n = res.data.n;
-          if (n === 0) {
-            axios
-              .post("http://localhost:3001/createSlot", { date: date })
-              .then((resp) => {
-                console.log(resp.data);
-                getFreeSlot();
-              });
-          } else {
-            getFreeSlot();
-          }
-        });
+
+      await getslots(token, { date: date });
+      getFreeSlot();
     }
   };
 
   return (
     <>
-    <Navbar/>
+      <Navbar />
       <section className="vh-1 gradient-custom">
         <div className="container py-1 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">
@@ -90,19 +88,10 @@ export default function Book() {
               <div className="card bg-light">
                 <div className="card-body p-5">
                   <div className="mb-md-1 mt-md-1 pb-1">
-                    <div className="form-outline form-white mb-2 ">
-                      <input
-                        type="text"
-                        className="form-control form-control-lg"
-                        placeholder="Name"
-                        value={name}
-                        onChange={(e) => setname(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="form-outline form-white mb-2">
+                    <div className="form-floating form-white mb-2">
                       <input
                         className="form-control form-control-lg"
+                        id="date"
                         type="date"
                         onChange={(e) => {
                           setDate(e.target.value);
@@ -111,12 +100,14 @@ export default function Book() {
                           setselectedSlot();
                         }}
                       />
+                      <label for="date">Date</label>
                     </div>
 
-                    <div className="form-outline form-white mb-5 ">
+                    <div className="form-floating form-white mb-5 ">
                       <input
                         className="form-control form-control-lg"
                         type="number"
+                        id="duration"
                         min="1"
                         onChange={(e) => {
                           setminute(e.target.value);
@@ -124,8 +115,8 @@ export default function Book() {
                           setfreeSlot([]);
                           setselectedSlot();
                         }}
-                        placeholder="Minutes"
                       />
+                      <label for="date">Duration (In minutes)</label>
                     </div>
                     <div className="d-grid gap-2 col-4 mx-auto">
                       <button
