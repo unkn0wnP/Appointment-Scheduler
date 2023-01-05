@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { getbookings } from "../../services/data";
 import Loading from "./Loading";
 import Navbar from "./Navbar";
-const axios = require("axios");
 
 export default function View() {
   const [date1, setDate1] = useState("");
@@ -19,23 +19,22 @@ export default function View() {
     if (date1 === "" || date2 === "") alert("Select Date.");
     else if (date2 < date1) alert("Invalid range.");
     else {
+      setdataFetched(false);
       setLoader(false);
-      axios
-        .post("http://localhost:3001/getBookings", {
-          date1: date1,
-          date2: date2,
-        })
-        .then((res) => {
-          setdata(res.data);
-          setdataFetched(true);
-          setLoader(true);
-        });
+      setdata([]);
+      const getBookings = async () => {
+        const res = await getbookings(token, date1, date2);
+        setdata(res);
+        setdataFetched(true);
+        setLoader(true);
+      };
+      getBookings();
     }
   };
 
   return (
     <>
-    <Navbar/>
+      <Navbar />
       <section className="vh-1 gradient-custom">
         <div className="container py-1 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">
