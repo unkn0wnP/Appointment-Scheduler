@@ -25,7 +25,7 @@ export const authRegister = async (data, showAlert) => {
       password: data.pass,
     };
     await axios
-      .post("http://localhost:3001/register", udata)
+      .post("/register", udata)
       .then((res) => {
         window.location.href = "/login";
       })
@@ -40,7 +40,7 @@ export const authLogin = async (data, showAlert) => {
       showAlert("Please fill all the details.", "danger");
     else {
       await axios
-        .post("http://localhost:3001/login", {
+        .post("/login", {
           username: data.username,
           password: data.password,
         })

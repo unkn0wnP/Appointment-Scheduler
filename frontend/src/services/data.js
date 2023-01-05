@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 export const profile = async (token) => {
-  const res = await axios.get("http://localhost:3001/getProfile", {
+  const res = await axios.get("/getProfile", {
     headers: { Authorization: "Bearer " + token },
   });
   return res.data;
@@ -9,7 +9,7 @@ export const profile = async (token) => {
 
 export const getbookings = async (token, date1, date2) => {
   const res = await axios.post(
-    "http://localhost:3001/getBookings",
+    "/getBookings",
     {
       date1: date1,
       date2: date2,
@@ -27,7 +27,7 @@ export const bookslot = async (token, data) => {
     alert("Select a slot.");
     return null;
   } else {
-    const res = await axios.post("http://localhost:3001/bookSlot", data, {
+    const res = await axios.post("/bookSlot", data, {
       headers: { Authorization: "Bearer " + token },
     });
 
@@ -36,18 +36,18 @@ export const bookslot = async (token, data) => {
 };
 
 export const freeslots = async (token, data) => {
-  const res = await axios.post("http://localhost:3001/getFreeSlot", data, {
+  const res = await axios.post("/getFreeSlot", data, {
     headers: { Authorization: "Bearer " + token },
   });
   return res.data;
 };
 
 export const getslots = async (token, data) => {
-  const res = await axios.post("http://localhost:3001/getSlotCount", data, {
+  const res = await axios.post("/getSlotCount", data, {
     headers: { Authorization: "Bearer " + token },
   });
   if (res.data.n === 0) {
-    await axios.post("http://localhost:3001/createSlot", data, {
+    await axios.post("/createSlot", data, {
       headers: { Authorization: "Bearer " + token },
     });
   }
