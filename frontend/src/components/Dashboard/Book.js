@@ -31,22 +31,6 @@ export default function Book() {
       setselectedSlot();
       alert("Booked.");
     }
-
-    // if (selectedSlot === "") alert("Select a slot.");
-    // else {
-    //   axios
-    //     .post("http://localhost:3001/bookSlot", {
-    //       date: date,
-    //       time: selectedSlot,
-    //       minute: minute,
-    //     })
-    //     .then((res) => {
-    //       setdataFetched(false);
-    //       setfreeSlot([]);
-    //       setselectedSlot();
-    //       alert("Booked.");
-    //     });
-    // }
   };
 
   const getFreeSlot = () => {
