@@ -1,4 +1,7 @@
 const axios = require("axios");
+const config = require("../Config/const")
+
+const API_URL = config.URL
 
 export const authRegister = async (data, showAlert) => {
   if (
@@ -25,7 +28,7 @@ export const authRegister = async (data, showAlert) => {
       password: data.pass,
     };
     await axios
-      .post("/register", udata)
+      .post(API_URL+"/register", udata)
       .then((res) => {
         window.location.href = "/login";
       })
@@ -40,7 +43,7 @@ export const authLogin = async (data, showAlert) => {
       showAlert("Please fill all the details.", "danger");
     else {
       await axios
-        .post("/login", {
+        .post(API_URL+"/login", {
           username: data.username,
           password: data.password,
         })
