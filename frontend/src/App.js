@@ -7,6 +7,7 @@ import Register from "./components/Register/index";
 import Home from "./components/Home/Home";
 import Login from "./components/Login/index";
 import PageNotFound from "./components/PageNotFound";
+import Confirmation from "./components/Confirmation";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route exact path="/view" element={<View />}/>
           <Route exact path="/register" element={<Register/>}/>
           <Route exact path="/login" element={<Login/>}/>
+          <Route path="/verify/:confirmationcode" element={<Confirmation />} />
           <Route exact path="*" element={<PageNotFound/>}/>
         </Routes>
       </Router>

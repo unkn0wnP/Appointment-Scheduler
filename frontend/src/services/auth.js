@@ -20,12 +20,24 @@ export const authRegister = async (data, showAlert) => {
   else if (data.pass !== data.pass2)
     showAlert("Confirm password must be same.", "danger");
   else {
+
+    //create confirmation code
+    var code = "";
+    const characters =
+      "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let i = 0; i < 25; i++) {
+      code += characters[Math.floor(Math.random() * characters.length)];
+    }
+
     const udata = {
       username: data.username,
       lastname: data.lastname,
       firstname: data.firstname,
       email: data.email,
       password: data.pass,
+      register_time: new Date(),
+      confirmationcode: code,
+      status: "Pending"
     };
     await axios
       .post(API_URL+"/register", udata)
@@ -55,4 +67,10 @@ export const authLogin = async (data, showAlert) => {
           showAlert(error.response.data, "danger");
         });
     }
+  };
+
+  export const verifyUser = async (code) => {
+    await axios.get(API_URL+"/verify/" + code).then((res) => {
+      return res.data;
+    });
   };

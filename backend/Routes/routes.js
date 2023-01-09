@@ -1,15 +1,30 @@
 const express = require("express");
 const Router = express.Router();
 const jwt = require("jsonwebtoken");
-const config = require("../../config/const")
+const config = require("../../config/const");
 
 const slotD = require("../models/slot");
 const bookA = require("../models/bookings");
 const User = require("../models/user");
+const { sendConfirmationMail } = require("../../frontend/src/services/email");
 
 const duration = config.duration;
 const start = config.start;
 const end = config.end;
+
+//email confirmation
+Router.get("/verify/:confirmationcode", async (req, res) => {
+
+  let data = await User.where("confirmationcode", "==", req.params.confirmationcode).get();
+  data = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+  if (!data) {
+    res.status(404).json("user not found.");
+  } else {
+
+    await User.doc(data[0].id).update({ status: "Active" });
+  }
+});
 
 //Register
 Router.post("/register", async (req, res) => {
@@ -23,6 +38,11 @@ Router.post("/register", async (req, res) => {
   if (data !== 0) {
     res.status(400).json("Username or Email is already in use.");
   } else {
+    sendConfirmationMail(
+      req.body.username,
+      req.body.email,
+      req.body.confirmationcode
+    );
     await User.add(req.body);
 
     res.status(200).json("Registered Successfully.");
@@ -37,6 +57,10 @@ Router.post("/login", async (req, res) => {
 
   if (data.length === 0) {
     res.status(400).json("User not found.");
+  } else if (data[0].status !== "Active") {
+    res
+      .status(400)
+      .json("Account verification is pending. Please Verify Your Email!");
   } else if (req.body.password !== data[0].password) {
     res.status(400).json("Invalid password.");
   } else {
@@ -76,15 +100,14 @@ Router.post("/getBookings", authenticateToken, async (req, res) => {
   res.send(list);
 });
 
-
-Router.post("/getSlotCount",authenticateToken, async (req, res) => {
+Router.post("/getSlotCount", authenticateToken, async (req, res) => {
   const d = req.body.date;
   const data = await slotD.where("date", "==", d).get();
   const list = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   res.send({ n: list.length });
 });
 
-Router.post("/createSlot",authenticateToken, async (req, res) => {
+Router.post("/createSlot", authenticateToken, async (req, res) => {
   const date = req.body.date;
   let t = start;
   let c = 0;
@@ -101,7 +124,7 @@ Router.post("/createSlot",authenticateToken, async (req, res) => {
   res.send({ item: c });
 });
 
-Router.post("/getFreeSlot",authenticateToken, async (req, res) => {
+Router.post("/getFreeSlot", authenticateToken, async (req, res) => {
   const d = req.body.date;
   const minute = req.body.minute;
 
@@ -125,7 +148,7 @@ Router.post("/getFreeSlot",authenticateToken, async (req, res) => {
   res.send(result);
 });
 
-Router.post("/bookSlot", authenticateToken,async (req, res) => {
+Router.post("/bookSlot", authenticateToken, async (req, res) => {
   let t = parseInt(req.body.time);
   const d = req.body.date;
   const name = req.user.username;
