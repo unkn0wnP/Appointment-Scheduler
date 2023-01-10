@@ -2,7 +2,7 @@ const express = require("express");
 const Router = express.Router();
 const jwt = require("jsonwebtoken");
 const config = require("../../config/const");
-
+const bcrypt = require("bcryptjs");
 const slotD = require("../models/slot");
 const bookA = require("../models/bookings");
 const User = require("../models/user");
@@ -14,14 +14,16 @@ const end = config.end;
 
 //email confirmation
 Router.get("/verify/:confirmationcode", async (req, res) => {
-
-  let data = await User.where("confirmationcode", "==", req.params.confirmationcode).get();
+  let data = await User.where(
+    "confirmationcode",
+    "==",
+    req.params.confirmationcode
+  ).get();
   data = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
   if (!data) {
     res.status(404).json("user not found.");
   } else {
-
     await User.doc(data[0].id).update({ status: "Active" });
   }
 });
@@ -43,7 +45,13 @@ Router.post("/register", async (req, res) => {
       req.body.email,
       req.body.confirmationcode
     );
-    await User.add(req.body);
+
+    let userData = req.body;
+
+    const salt = await bcrypt.genSalt(10);
+    userData.password = await bcrypt.hash(userData.password, salt);
+
+    await User.add(userData);
 
     res.status(200).json("Registered Successfully.");
   }
@@ -61,14 +69,17 @@ Router.post("/login", async (req, res) => {
     res
       .status(400)
       .json("Account verification is pending. Please Verify Your Email!");
-  } else if (req.body.password !== data[0].password) {
-    res.status(400).json("Invalid password.");
   } else {
-    const user = { username: req.body.username };
+    const validCred = await bcrypt.compare(req.body.password, data[0].password);
+    if (!validCred) {
+      res.status(400).json("Invalid password.");
+    } else {
+      const user = { username: req.body.username };
 
-    //JSON web token
-    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN);
-    res.json({ accessToken: accessToken });
+      //JSON web token
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN);
+      res.json({ accessToken: accessToken });
+    }
   }
 });
 
