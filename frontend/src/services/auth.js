@@ -1,7 +1,8 @@
-const axios = require("axios");
-const config = require("../Config/const")
+import axios from "../utils/axios";
+import AxiosPrivate from "../utils/AxiosPrivate";
+import errorHandler from "./errorHandler";
 
-const API_URL = config.URL
+const axiosP = AxiosPrivate();
 
 export const authRegister = async (data, showAlert) => {
   if (
@@ -20,7 +21,6 @@ export const authRegister = async (data, showAlert) => {
   else if (data.pass !== data.pass2)
     showAlert("Confirm password must be same.", "danger");
   else {
-
     //create confirmation code
     var code = "";
     const characters =
@@ -37,10 +37,10 @@ export const authRegister = async (data, showAlert) => {
       password: data.pass,
       register_time: new Date(),
       confirmationcode: code,
-      status: "Pending"
+      status: "Pending",
     };
     await axios
-      .post(API_URL+"/register", udata)
+      .post("/register", udata)
       .then((res) => {
         window.location.href = "/login";
       })
@@ -51,26 +51,45 @@ export const authRegister = async (data, showAlert) => {
 };
 
 export const authLogin = async (data, showAlert) => {
-    if (data.username === "" || data.password === "")
-      showAlert("Please fill all the details.", "danger");
-    else {
-      await axios
-        .post(API_URL+"/login", {
-          username: data.username,
-          password: data.password,
-        })
-        .then((res) => {
-          localStorage.setItem("jwtToken", res.data.accessToken);
-          window.location.href = "/book";
-        })
-        .catch((error) => {
-          showAlert(error.response.data, "danger");
-        });
-    }
-  };
+  if (data.username === "" || data.password === "")
+    showAlert("Please fill all the details.", "danger");
+  else {
+    await axios
+      .post("/login", {
+        username: data.username,
+        password: data.password,
+      })
+      .then((res) => {
+        const token = JSON.stringify(res.data);
+        localStorage.setItem("token", token);
+        window.location.href = "/book";
+      })
+      .catch((error) => {
+        showAlert(error.response.data, "danger");
+      });
+  }
+};
 
-  export const verifyUser = async (code) => {
-    await axios.get(API_URL+"/verify/" + code).then((res) => {
-      return res.data;
-    });
-  };
+export const logout = async () => {
+  const token = JSON.parse(localStorage.getItem("token"));
+  const res = await axiosP.delete("/logout", {
+    headers: { Authorization: `Bearer ${token.refreshToken}` },
+  });
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+};
+
+export const validateLogin = async () => {
+  try {
+    await axiosP.get("/validatelogin");
+    return true;
+  } catch (err) {
+    errorHandler(err);
+  }
+};
+
+export const verifyUser = async (code) => {
+  await axios.get("/verify/" + code).then((res) => {
+    return res.data;
+  });
+};

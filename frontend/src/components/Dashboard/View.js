@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { validateLogin } from "../../services/auth";
 import { getbookings } from "../../services/data";
 import Loading from "./Loading";
 import Navbar from "./Navbar";
@@ -9,10 +10,12 @@ export default function View() {
   const [data, setdata] = useState([]);
   const [loader, setLoader] = useState(true);
   const [dataFetched, setdataFetched] = useState(false);
-  const token = localStorage.getItem("jwtToken");
 
   useEffect(() => {
-    if (token === null) window.location.href = "/login";
+    const validate = async () => {
+      await validateLogin();
+    };
+    validate();
   }, []);
 
   const getData = () => {
@@ -23,7 +26,7 @@ export default function View() {
       setLoader(false);
       setdata([]);
       const getBookings = async () => {
-        const res = await getbookings(token, date1, date2);
+        const res = await getbookings(date1, date2);
         setdata(res);
         setdataFetched(true);
         setLoader(true);

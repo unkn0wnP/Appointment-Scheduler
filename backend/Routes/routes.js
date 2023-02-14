@@ -6,11 +6,22 @@ const bcrypt = require("bcryptjs");
 const slotD = require("../models/slot");
 const bookA = require("../models/bookings");
 const User = require("../models/user");
+const RefreshToken = require("../models/refreshToken");
 const { sendConfirmationMail } = require("../../frontend/src/services/email");
 
 const duration = config.duration;
 const start = config.start;
 const end = config.end;
+
+const ACCESS_TOKEN_KEY = process.env.ACCESS_TOKEN_KEY;
+const REFRESH_TOKEN_KEY = process.env.REFRESH_TOKEN_KEY;
+const ACCESS_TOKEN_TIME = process.env.ACCESS_TOKEN_TIME;
+const REFRESH_TOKEN_TIME = process.env.REFRESH_TOEKN_TIME;
+
+//validate Login
+Router.get("/validatelogin", authenticateToken, (req, res) => {
+  return res.status(200).json("Valid Login.");
+});
 
 //email confirmation
 Router.get("/verify/:confirmationcode", async (req, res) => {
@@ -22,7 +33,7 @@ Router.get("/verify/:confirmationcode", async (req, res) => {
   data = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
   if (!data) {
-    res.status(404).json("user not found.");
+    return res.status(404).json("user not found.");
   } else {
     await User.doc(data[0].id).update({ status: "Active" });
   }
@@ -38,7 +49,7 @@ Router.post("/register", async (req, res) => {
   const data = res1.docs.length + res2.docs.length;
 
   if (data !== 0) {
-    res.status(400).json("Username or Email is already in use.");
+    return res.status(400).json("Username or Email is already in use.");
   } else {
     sendConfirmationMail(
       req.body.username,
@@ -53,7 +64,7 @@ Router.post("/register", async (req, res) => {
 
     await User.add(userData);
 
-    res.status(200).json("Registered Successfully.");
+    return res.status(200).json("Registered Successfully.");
   }
 });
 
@@ -64,7 +75,7 @@ Router.post("/login", async (req, res) => {
   data = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
   if (data.length === 0) {
-    res.status(400).json("User not found.");
+    return res.status(400).json("User not found.");
   } else if (data[0].status !== "Active") {
     res
       .status(400)
@@ -72,14 +83,79 @@ Router.post("/login", async (req, res) => {
   } else {
     const validCred = await bcrypt.compare(req.body.password, data[0].password);
     if (!validCred) {
-      res.status(400).json("Invalid password.");
+      return res.status(400).json("Invalid password.");
     } else {
       const user = { username: req.body.username };
 
       //JSON web token
-      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN);
-      res.json({ accessToken: accessToken });
+      const accessToken = jwt.sign(user, ACCESS_TOKEN_KEY, {
+        expiresIn: ACCESS_TOKEN_TIME,
+      });
+      const refreshToken = jwt.sign(user, REFRESH_TOKEN_KEY, {
+        expiresIn: REFRESH_TOKEN_TIME,
+      });
+
+      await RefreshToken.add({ token: refreshToken });
+
+      return res.json({ accessToken, refreshToken });
     }
+  }
+});
+
+//refresh tokens
+Router.get("/refreshToken", async (req, res) => {
+  if (req.headers.hasOwnProperty("authorization") === false) {
+    return res.status(403).json("No authorization header found.");
+  } else {
+    const authHeader = req.headers["authorization"];
+    const refreshToken = authHeader && authHeader.split(" ")[1];
+
+    if (refreshToken === "null")
+      return res.status(403).json("No refresh token found.");
+
+    let token = await RefreshToken.where("token", "==", refreshToken).get();
+    token = token.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    if (token.length === 0) {
+      return res.status(403).json("Invalid refresh token.");
+    }
+
+    jwt.verify(refreshToken, REFRESH_TOKEN_KEY, (err, user) => {
+      if (err) {
+        RefreshToken.doc(token[0].id).delete();
+        return res.status(403).json("Refresh token expired.");
+      }
+      const accessToken = jwt.sign(
+        { username: user.username },
+        ACCESS_TOKEN_KEY,
+        {
+          expiresIn: ACCESS_TOKEN_TIME,
+        }
+      );
+      return res.status(200).json({ accessToken: accessToken });
+    });
+  }
+});
+
+//logout
+Router.delete("/logout", async (req, res) => {
+  if (req.headers.hasOwnProperty("authorization") === false) {
+    return res.status(403).json("No authorization header found.");
+  } else {
+    const authHeader = req.headers["authorization"];
+    const refreshToken = authHeader && authHeader.split(" ")[1];
+
+    if (refreshToken === "null") return res.status(403).json("Not logged In.");
+
+    let token = await RefreshToken.where("token", "==", refreshToken).get();
+    token = token.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    if (token.length === 0) {
+      return res.status(403).json("Invalid refresh token.");
+    }
+
+    await RefreshToken.doc(token[0].id).delete();
+    res.status(200).json("Logged out successfully.");
   }
 });
 
@@ -91,9 +167,9 @@ Router.get("/getProfile", authenticateToken, async (req, res) => {
   data = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
   if (data.length === 0) {
-    res.status(400).json("User not found.");
+    return res.status(400).json("User not found.");
   } else {
-    res.status(200).json(data[0]);
+    return res.status(200).json(data[0]);
   }
 });
 
@@ -108,14 +184,14 @@ Router.post("/getBookings", authenticateToken, async (req, res) => {
     .where("date", "<=", date2)
     .get();
   const list = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  res.send(list);
+  return res.send(list);
 });
 
 Router.post("/getSlotCount", authenticateToken, async (req, res) => {
   const d = req.body.date;
   const data = await slotD.where("date", "==", d).get();
   const list = data.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  res.send({ n: list.length });
+  return res.send({ n: list.length });
 });
 
 Router.post("/createSlot", authenticateToken, async (req, res) => {
@@ -132,7 +208,7 @@ Router.post("/createSlot", authenticateToken, async (req, res) => {
     t = t + duration;
     c++;
   }
-  res.send({ item: c });
+  return res.send({ item: c });
 });
 
 Router.post("/getFreeSlot", authenticateToken, async (req, res) => {
@@ -156,7 +232,7 @@ Router.post("/getFreeSlot", authenticateToken, async (req, res) => {
     }
     t = t + duration;
   }
-  res.send(result);
+  return res.send(result);
 });
 
 Router.post("/bookSlot", authenticateToken, async (req, res) => {
@@ -186,22 +262,22 @@ Router.post("/bookSlot", authenticateToken, async (req, res) => {
     t = t + duration;
   }
 
-  res.send({ msg: "Done" });
+  return res.send({ msg: "Done" });
 });
 
 //jwt token authentication
 function authenticateToken(req, res, next) {
   if (req.headers.hasOwnProperty("authorization") === false) {
-    res.status(403);
+    return res.status(403);
   } else {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
     if (token === "null") return res.status(403);
 
-    jwt.verify(token, process.env.ACCESS_TOKEN, (err, user) => {
+    jwt.verify(token, ACCESS_TOKEN_KEY, (err, user) => {
       if (err) {
-        res.sendStatus(403);
+        return res.sendStatus(403);
       }
       req.user = user;
       next();
