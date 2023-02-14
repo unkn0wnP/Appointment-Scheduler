@@ -1,16 +1,18 @@
-import React,{useEffect} from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { validateLogin } from "../../services/auth";
 import Navbar from "./Navbar";
 
 export default function Home() {
-
-  const token = localStorage.getItem("jwtToken")
-
   useEffect(() => {
-    if(token)
-    window.location.href = "/book"
-  
-  }, [])
+    const validate = async () => {
+      const res = await validateLogin();
+      if (res === true) {
+        window.location.href = "/book";
+      }
+    };
+    localStorage.getItem("token") && validate();
+  }, []);
   return (
     <>
       <Navbar />

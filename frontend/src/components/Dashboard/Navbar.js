@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { logout } from "../../services/auth";
 import { profile } from "../../services/data";
-const axios = require("axios");
 
 export default function Navbar() {
-  const token = localStorage.getItem("jwtToken");
-
-  const handlelogout = () => {
-    localStorage.removeItem("jwtToken");
-    window.location.href = "/";
+  const handlelogout = async () => {
+    await logout();
   };
 
   const [data, setdata] = useState({});
   useEffect(() => {
     const getData = async () => {
-      const res = await profile(token);
+      const res = await profile();
       res && setdata(res);
     };
     getData();

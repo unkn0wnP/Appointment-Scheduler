@@ -1,57 +1,61 @@
-const axios = require("axios");
-const config = require("../Config/const")
+import AxiosPrivate from "../utils/AxiosPrivate";
+import errorHandler from "./errorHandler";
 
-const API_URL = config.URL
+const axiosP = AxiosPrivate();
 
-export const profile = async (token) => {
-  const res = await axios.get(API_URL+"/getProfile", {
-    headers: { Authorization: "Bearer " + token },
-  });
-  return res.data;
-};
-
-export const getbookings = async (token, date1, date2) => {
-  const res = await axios.post(
-    API_URL+"/getBookings",
-    {
-      date1: date1,
-      date2: date2,
-    },
-    {
-      headers: { Authorization: "Bearer " + token },
-    }
-  );
-
-  return res.data;
-};
-
-export const bookslot = async (token, data) => {
-  if (data.time === "") {
-    alert("Select a slot.");
-    return null;
-  } else {
-    const res = await axios.post(API_URL+"/bookSlot", data, {
-      headers: { Authorization: "Bearer " + token },
-    });
-
-    return res;
+export const profile = async () => {
+  try {
+    const res = await axiosP.get("/getProfile");
+    return res.data;
+  } catch (err) {
+    errorHandler(err);
   }
 };
 
-export const freeslots = async (token, data) => {
-  const res = await axios.post(API_URL+"/getFreeSlot", data, {
-    headers: { Authorization: "Bearer " + token },
-  });
-  return res.data;
+export const getbookings = async (date1, date2) => {
+  try {
+    const res = await axiosP.post("/getBookings", {
+      date1: date1,
+      date2: date2,
+    });
+
+    return res.data;
+  } catch (err) {
+    errorHandler(err);
+  }
 };
 
-export const getslots = async (token, data) => {
-  const res = await axios.post(API_URL+"/getSlotCount", data, {
-    headers: { Authorization: "Bearer " + token },
-  });
-  if (res.data.n === 0) {
-    await axios.post(API_URL+"/createSlot", data, {
-      headers: { Authorization: "Bearer " + token },
-    });
+export const bookslot = async (data) => {
+  try {
+    if (data.time === "") {
+      alert("Select a slot.");
+      return null;
+    } else {
+      const res = await axiosP.post("/bookSlot", data);
+
+      return res;
+    }
+  } catch (err) {
+    errorHandler(err);
+  }
+};
+
+export const freeslots = async (data) => {
+  try {
+    const res = await axiosP.post("/getFreeSlot", data);
+    return res.data;
+  } catch (err) {
+    errorHandler(err);
+  }
+};
+
+export const getslots = async (data) => {
+  try {
+    const res = await axiosP.post("/getSlotCount", data);
+    if (res.data.n === 0) {
+      await axiosP.post("/createSlot", data);
+    }
+  } catch (err) {
+    errorHandler(err);
   }
 };

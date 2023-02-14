@@ -5,7 +5,6 @@ import { verifyUser } from "../services/auth";
 export default function Confirmation() {
   const param = useParams();
   useEffect(() => {
-    console.log("here");
     const verify = async () => {
       await verifyUser(param.confirmationcode);
     };

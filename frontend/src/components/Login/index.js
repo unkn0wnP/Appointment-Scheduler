@@ -1,13 +1,19 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Login from "./Login";
 import Alert from "../Alert/Alert";
+import { validateLogin } from "../../services/auth";
 
 export default function Index() {
   const [alert, setAlert] = useState(null);
-  const token = localStorage.getItem("jwtToken");
 
   useEffect(() => {
-    if (token) window.location.href = "/book";
+    const validate = async () => {
+      const res = await validateLogin();
+      if (res === true) {
+        window.location.href = "/book";
+      }
+    };
+    localStorage.getItem("token") && validate();
   }, []);
 
   const showAlert = (msg, type) => {
@@ -21,7 +27,7 @@ export default function Index() {
     <>
       <Alert alert={alert} />
       <div className="row mx-3 my-4 mb-4">
-          <Login showAlert={showAlert} />
+        <Login showAlert={showAlert} />
       </div>
     </>
   );

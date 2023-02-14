@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import Loading from "./Loading";
 import { bookslot, freeslots, getslots } from "../../services/data";
-const axios = require("axios");
+import { validateLogin } from "../../services/auth";
 
 export default function Book() {
   const [date, setDate] = useState("");
@@ -12,14 +12,15 @@ export default function Book() {
   const [selectedSlot, setselectedSlot] = useState();
   const [dataFetched, setdataFetched] = useState(false);
 
-  const token = localStorage.getItem("jwtToken");
-
   useEffect(() => {
-    if (token === null) window.location.href = "/login";
+    const validate = async () => {
+      await validateLogin();
+    };
+    validate();
   }, []);
 
   const bookSlot = async () => {
-    const res = await bookslot(token, {
+    const res = await bookslot({
       date: date,
       time: selectedSlot,
       minute: minute,
@@ -37,7 +38,7 @@ export default function Book() {
     const data = { date: date, minute: minute };
 
     const slots = async () => {
-      const res = await freeslots(token, data);
+      const res = await freeslots(data);
       res && setfreeSlot(res);
       res && setLoader(true);
       res && setdataFetched(true);
@@ -57,7 +58,7 @@ export default function Book() {
     } else {
       setLoader(false);
 
-      await getslots(token, { date: date });
+      await getslots({ date: date });
       getFreeSlot();
     }
   };

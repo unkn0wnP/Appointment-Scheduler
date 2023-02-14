@@ -2,14 +2,19 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
-const Router = require("./Routes/routes")
+const Router = require("./Routes/routes");
 
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+const corsConfig = {
+  origin: "http://localhost:3000",
+  credentials: true,
+};
+
 app.use(express.json());
-app.use(cors());
-app.use("/",Router)
+app.use(cors(corsConfig));
+app.use("/", Router);
 
 app.use(express.static(path.resolve(__dirname, "../frontend/build")));
 app.get("*", (request, response) => {

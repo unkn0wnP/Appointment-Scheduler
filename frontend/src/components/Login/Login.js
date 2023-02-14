@@ -1,13 +1,25 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authLogin } from "../../services/auth";
 
 export default function Login(props) {
+  // const navigate = useNavigate();
+  // const location = useLocation();
+  // const from = location.state?.from?.pathname || "/";
+
   const [username, setusername] = useState("");
   const [pass, setpass] = useState("");
 
-  const validateLogin = () => {
-    authLogin({ username: username, password: pass }, props.showAlert);
+  const validateLogin = async () => {
+    const res = await authLogin(
+      { username: username, password: pass },
+      props.showAlert
+    );
+    // if (res) {
+    //   // navigate(from, { replace: true });
+    //   alert(res);
+    //   window.location.href = "/book";
+    // }
   };
 
   return (
